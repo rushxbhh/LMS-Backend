@@ -1,7 +1,7 @@
-
 package com.edu.lms.config;
 
 import com.edu.lms.auth.controller.AuthController;
+import com.edu.lms.common.util.JwtAuthFilter;
 import com.edu.lms.common.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -14,7 +14,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
@@ -52,11 +51,12 @@ public class SecurityConfig {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .authorizeRequests()
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .and()
+            .authorizeRequests(authorize -> authorize
                 .antMatchers("/api/auth/register", "/api/auth/google/login").permitAll()
-                .anyRequest().authenticated();
+                .anyRequest().authenticated()
+            );
 
         http.addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class);
     }

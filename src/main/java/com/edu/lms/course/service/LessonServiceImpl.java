@@ -10,9 +10,12 @@ import com.edu.lms.course.entity.Lesson;
 import com.edu.lms.course.repository.CourseRepository;
 import com.edu.lms.course.repository.LessonRepository;
 import com.edu.lms.course.repository.ModuleRepository;
+import com.edu.lms.enrollment.entity.EnrollmentStatus;
+import com.edu.lms.enrollment.repository.EnrollmentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 import java.util.UUID;
 
@@ -21,6 +24,7 @@ import java.util.UUID;
 public class LessonServiceImpl
         implements LessonService {
 
+    private final EnrollmentRepository enrollmentRepository;
     private final LessonRepository lessonRepository;
     private final ModuleRepository moduleRepository;
     private final CourseRepository courseRepository;
@@ -94,6 +98,25 @@ public class LessonServiceImpl
                         .orElseThrow(() ->
                                 new ResourceNotFoundException(
                                         "Lesson not found"));
+
+        if (Boolean.TRUE.equals(lesson.getFreePreview())) {
+            return mapToDto(lesson);
+        }
+
+        // Locked lesson — must be authenticated and enrolled
+        UUID currentUserId = getCurrentUserId()
+                .orElseThrow(() -> new AccessDeniedException("Login required to access this lesson"));
+
+        UUID courseId = lesson.getModule().getCourse().getId();
+
+        boolean enrolled = enrollmentRepository.existsByStudentIdAndCourseIdAndStatus(
+                currentUserId, courseId, EnrollmentStatus.ACTIVE
+        );
+
+        if (!enrolled) {
+            throw new AccessDeniedException("Enroll in this course to access the lesson");
+        }
+
 
         return mapToDto(lesson);
     }
