@@ -8,5 +8,12 @@ import java.util.List;
 @Data
 @Builder
 public class CurriculumDto {
+
+    // So the frontend knows the course title without a second call
+    private String courseTitle;
+
+    // Tells the frontend which state to render — enrolled vs preview
+    private Boolean enrolled;
+
     private List<ModuleCurriculumDto> modules;
 }

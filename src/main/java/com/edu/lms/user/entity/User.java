@@ -103,6 +103,6 @@ public class User implements UserDetails {
     }
 
     public enum Provider {
-        GOOGLE
+        GOOGLE, LOCAL
     }
 }
